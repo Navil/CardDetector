@@ -1,0 +1,269 @@
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
+\begin_document
+\begin_header
+\textclass report
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 1
+\use_mhchem 1
+\use_mathdots 1
+\cite_engine basic
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth -1
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Section*
+
+\size large
+Konzept - Arbeitsgruppe AG_B 3
+\begin_inset Newline newline
+\end_inset
+
+Erkennen von Spielkarten
+\end_layout
+
+\begin_layout Subsubsection*
+Ziel
+\end_layout
+
+\begin_layout Standard
+Das Programm soll ein Pokerblatt anhand eines Bildes der Spielkarten erkennen,
+ also deren Farbe und Wert ausgeben.
+\end_layout
+
+\begin_layout Subsubsection*
+Eingabe
+\end_layout
+
+\begin_layout Standard
+Ein Bilddatei in einem der folgenden Formate: .png, .tiff, .jpg.
+ Das Programm arbeitet nach der Angabe des Bildes von alleine und benötigt
+ keine weitere Interaktion.
+\end_layout
+
+\begin_layout Subsubsection*
+Ausgabe
+\end_layout
+
+\begin_layout Standard
+Der Output ist textuell und gibt jeweils Farbe und Wert der einzelnen Spielkarte
+n an.
+ Die Reihenfolge der Karten wird hierbei nicht beachtet.
+\end_layout
+
+\begin_layout Subsubsection*
+Voraussetzungen
+\end_layout
+
+\begin_layout Itemize
+der Hintergrund muss einfarbig und darf nicht weiß sein
+\end_layout
+
+\begin_layout Itemize
+die Karten dürfen nicht überlappen oder berühren
+\end_layout
+
+\begin_layout Itemize
+die Karten müssen parallel zum Bildrand liegen
+\end_layout
+
+\begin_layout Itemize
+das Bild muss von oben aufgenommen sein (keine verzerrte Perspektive)
+\end_layout
+
+\begin_layout Itemize
+das Kartendeck ist vorgegeben, genau eines
+\end_layout
+
+\begin_layout Subsubsection*
+Methodik
+\end_layout
+
+\begin_layout Itemize
+Einlesen des Bildes
+\end_layout
+
+\begin_layout Itemize
+Binärbild erstellen mit Threshold (um Karten von Hintergrund zu trennen)
+\end_layout
+
+\begin_layout Itemize
+Karten segmentieren mit Connected Component Labeling
+\end_layout
+
+\begin_layout Itemize
+Kartenwert erkennen mit MATLABs OCR-Funktion
+\end_layout
+
+\begin_layout Itemize
+Kartenfarbe (Pik, Kreuz, Herz, Karo) erkennen mit entweder Template Matching
+ (Template aus Distanztransformation) oder Corner Detection der isolierten
+ Symbole
+\end_layout
+
+\begin_layout Subsubsection*
+Evaluierung
+\end_layout
+
+\begin_layout Itemize
+Wieviel Prozent der Testdatensätze liefern ein korrektes Ergebnis?
+\end_layout
+
+\begin_layout Itemize
+Werden die Farben korrekt unterschieden?
+\end_layout
+
+\begin_layout Itemize
+Werden die Kartenpositionen richtig erkannt?
+\end_layout
+
+\begin_layout Itemize
+Wird die richtige Anzahl an Karten erkannt?
+\end_layout
+
+\begin_layout Itemize
+Bis zu welcher Kartenneigungen werden diese richtig erkannt?
+\end_layout
+
+\begin_layout Itemize
+Wie weit können sich die Karten überlappen ohne Beeinträchtigung des Ergebnis?
+\end_layout
+
+\begin_layout Subsubsection*
+Datenbeispiel
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Float figure
+placement h
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename Example_Input.jpeg
+	lyxscale 45
+	width 100col%
+
+\end_inset
+
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Input Beispiel
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Plain Layout
+Pik Sechs, Karo Sechs, Kreuz Zehn, Karo Ass, Karo König
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Outputbeispiel
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document
