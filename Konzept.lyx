@@ -116,6 +116,10 @@ die Karten müssen parallel zum Bildrand liegen
 \end_layout
 
 \begin_layout Itemize
+die Karten dürfen nicht am Bildrand liegen oder diesen schneiden
+\end_layout
+
+\begin_layout Itemize
 das Bild muss von oben aufgenommen sein (keine verzerrte Perspektive)
 \end_layout
 

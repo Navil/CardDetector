@@ -177,6 +177,10 @@ Bis zu welcher Kartenneigungen werden diese richtig erkannt?
 Wie weit können sich die Karten überlappen ohne Beeinträchtigung des Ergebnis?
 \end_layout
 
+\begin_layout Itemize
+Werden die Bilder richtig eingelesen und erkannt/verarbeitet?
+\end_layout
+
 \begin_layout Subsubsection*
 Datenbeispiel
 \end_layout
