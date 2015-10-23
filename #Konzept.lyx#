@@ -43,14 +43,14 @@
 \shortcut idx
 \color #008000
 \end_index
-\leftmargin 2cm
-\topmargin 2cm
-\rightmargin 2cm
-\bottommargin 2cm
+\leftmargin 2.5cm
+\topmargin 2.5cm
+\rightmargin 2.5cm
+\bottommargin 2.5cm
 \secnumdepth -1
 \tocdepth 3
-\paragraph_separation skip
-\defskip smallskip
+\paragraph_separation indent
+\paragraph_indentation default
 \quotes_language english
 \papercolumns 1
 \papersides 1
@@ -759,7 +759,7 @@ alle
 LatexCommand bibtex
 btprint "btPrintAll"
 bibfiles "Konzept_References"
-options "plain"
+options "ieeetr"
 
 \end_inset
 
