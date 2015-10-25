@@ -6,7 +6,9 @@ function detectCard(filename)
 %                           as an input and prints the card values as
 %                           textual output to the console.
 
+% Authors: Christopher Dick (0946375), Timon Höbert()
 clc
+
 
 %% Preprocessing
 
@@ -49,17 +51,15 @@ binaryIm(greyIm > thld + epsilon) = 1;
 % SE = strel('square', 10);
 % closedIm = imclose(binaryIm, SE);
 closedIm = bwmorph(binaryIm, 'thicken', 10);
-%figure;
-%imshow(closedIm);
 
 
 %% Segmentation of the cards
 
-% Detect cards by connecte component labeling
+% Detect cards by connected component labeling
 
-[labels, numCards] = bwlabel(binaryIm, 8);
-%imshow(labels);
-%numCards
+labels = bwlabel(closedIm);
+amounts = histcounts(categorical(labels));
+
 
 
 %% Value recognition of segmented card
