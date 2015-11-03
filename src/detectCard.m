@@ -20,17 +20,21 @@ if ~exist(filename, 'file');
 end
 
 %  check image if already in double type, if not: convert
-original = imread(filename);
-if ~isfloat(original)
-    original = im2double(original);
+originalIm = imread(filename);
+if ~isfloat(originalIm)
+    originalIm = im2double(originalIm);
 end
 
 % check if read is intensity image, convert if not
-if ndims(original) > 2;
-    greyIm = rgb2gray(original);
+if ndims(originalIm) > 2;
+    greyIm = rgb2gray(originalIm);
 else
-    greyIm = original;
+    greyIm = originalIm;
 end
+
+% smooth the image with a gaussian filter to remove noise
+
+smoothedIm = imgaussfilt(greyIm, 'filtersize', 9);
 
 %{
  Create a binary image by thresholding against white (card background)
@@ -41,24 +45,60 @@ binaryIm(greyIm > thld - epsilon) = 1;
 %}
 
 % Create a binary image by threholding with Otsu against background
-thld = graythresh(greyIm);
+thld = graythresh(smoothedIm);
 epsilon = 0.15;
-binaryIm = false(size(greyIm));
-binaryIm(greyIm > thld + epsilon) = 1;
+binaryIm = false(size(smoothedIm));
+binaryIm(smoothedIm > thld + epsilon) = 1;
 
-
-% fill holes in cards caused by patterns
-% SE = strel('square', 10);
-% closedIm = imclose(binaryIm, SE);
-closedIm = bwmorph(binaryIm, 'thicken', 10);
 
 
 %% Segmentation of the cards
 
 % Detect cards by connected component labeling
 
-labels = bwlabel(closedIm);
-amounts = histcounts(categorical(labels));
+components = bwconncomp(binaryIm);
+labelSizes = cellfun(@numel, components.PixelIdxList);
+[sortedLabSiz, srtedLabIdx] = sort(labelSizes, 'descend');
+cards = cell([1 1]);
+counter = 1;
+
+rp = regionprops(binaryIm, 'BoundingBox');
+
+% for i = srtedLabIdx
+%     linIdx = components.PixelIdxList{i};
+%     [yMin xMin] = ind2sub(size(originalIm), min(linIdx));
+%     [yMax xMax] = ind2sub(size(originalIm), max(linIdx));
+%     
+%     if xMax < xMin;
+%         tmp = xMin;
+%         xMin = xMax;
+%         xMax = tmp;
+%     end
+%     
+%     if yMax < yMin;
+%         tmp = yMin;
+%         yMin = yMax;
+%         yMax = tmp;
+%         clear tmp;
+%     end
+%     
+%     height = yMax -yMin;
+%     width = xMax - xMin;
+%     
+%     cards{counter} = imcrop(originalIm, [xMin yMin width height]);
+%     
+%     if counter ~= 1;
+%         if numel(cards{counter}) <= (numel(cards{1}) * 0.9);
+%             cards{counter} = [];
+%             break;
+%         end
+%     end
+%     counter = counter + 1;
+% end
+
+why;
+    
+
 
 
 
