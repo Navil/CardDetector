@@ -1,5 +1,5 @@
 
-function detectCard(filename)
+function [cards] = detectCard(filename)
 % DETECTCARD Detects playing cards in an image and prints their values.
 %   DETECTCARD(FILENAME)    reads the image specified by FILENAME
 %                           in either .png, .tiff or .jpeg format
@@ -46,9 +46,8 @@ binaryIm(greyIm > thld - epsilon) = 1;
 
 % Create a binary image by threholding with Otsu against background
 thld = graythresh(smoothedIm);
-epsilon = 0.15;
 binaryIm = false(size(smoothedIm));
-binaryIm(smoothedIm > thld + epsilon) = 1;
+binaryIm(smoothedIm > thld) = 1;
 
 
 
@@ -56,58 +55,33 @@ binaryIm(smoothedIm > thld + epsilon) = 1;
 
 % Detect cards by connected component labeling
 
-components = bwconncomp(binaryIm);
-labelSizes = cellfun(@numel, components.PixelIdxList);
-[sortedLabSiz, srtedLabIdx] = sort(labelSizes, 'descend');
-cards = cell([1 1]);
-counter = 1;
+[labeledIm, numLabels] = bwlabel(binaryIm);
 
-rp = regionprops(binaryIm, 'BoundingBox');
+rp = regionprops(labeledIm, 'BoundingBox');
 
-% for i = srtedLabIdx
-%     linIdx = components.PixelIdxList{i};
-%     [yMin xMin] = ind2sub(size(originalIm), min(linIdx));
-%     [yMax xMax] = ind2sub(size(originalIm), max(linIdx));
-%     
-%     if xMax < xMin;
-%         tmp = xMin;
-%         xMin = xMax;
-%         xMax = tmp;
-%     end
-%     
-%     if yMax < yMin;
-%         tmp = yMin;
-%         yMin = yMax;
-%         yMax = tmp;
-%         clear tmp;
-%     end
-%     
-%     height = yMax -yMin;
-%     width = xMax - xMin;
-%     
-%     cards{counter} = imcrop(originalIm, [xMin yMin width height]);
-%     
-%     if counter ~= 1;
-%         if numel(cards{counter}) <= (numel(cards{1}) * 0.9);
-%             cards{counter} = [];
-%             break;
-%         end
-%     end
-%     counter = counter + 1;
-% end
+cards = cell(1, 10);
+areas = zeros(size(rp));
 
-why;
-    
-
-
-
-
-%% Value recognition of segmented card
-
-singleCard = imread('Example_Input_Single.jpeg');
-greySingle = rgb2gray(singleCard);
-txt = ocr(greySingle);
-txt
-
-
+for i = 1:length(areas)
+    a = rp(i).BoundingBox;
+    areas(i) = a(3) * a(4);
 end
+clear a;
+[sortedAreas, areaIdx] = sort(areas, 'descend');
+
+counter = 1;
+for i = 1: length(sortedAreas)
+   
+    cards{1, counter} = imcrop(originalIm, rp(areaIdx(i)).BoundingBox);
+    
+   if (sortedAreas(i) <= sortedAreas(1) * 0.9);
+       cards{1,counter} = [];
+       break;
+   end
+    figure;
+    imshow(cards{1,counter});
+    counter = counter + 1;
+end
+
+
+
