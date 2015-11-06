@@ -94,8 +94,8 @@ for brightnessItt=1:256
 end
 
 treshold = threshold/256; %our values go from 0-1
-binaryIm = true(size(grayIm)); %sets the entire image to black
-binaryIm(grayIm < treshold) = 0; %sets those to white, that are above
+binaryIm = true(size(grayIm)); %sets the entire image to white
+binaryIm(grayIm < treshold) = 0; %set to black, what is below the threshold
 end
 
 
