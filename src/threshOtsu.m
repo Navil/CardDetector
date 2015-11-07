@@ -1,5 +1,5 @@
 
-function main(filename)
+function threshOtsu(filename)
 % DETECTCARD Detects playing cards in an image and prints their values.
 %   DETECTCARD(FILENAME)    reads the image specified by FILENAME
 %                           in either .png, .tiff or .jpeg format
