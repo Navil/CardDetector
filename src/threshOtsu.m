@@ -37,7 +37,9 @@ end
 smoothedIm = imgaussfilt(greyIm, 'filtersize', 9);
 
 % apply Otsu to the grayscale image
-binaryIm = otsu(smoothedIm);
+threshold = otsu(smoothedIm);
+binaryIm = true(size(smoothedIm)); 
+binaryIm(smoothedIm < threshold) = 0; 
 imshow(binaryIm);
 
 
@@ -49,7 +51,7 @@ end
 % the classes and minimize the variance within the classes.
 %
 % Parameter: a grayscale image
-% Returnvalue: a binary image, where the threshold is applied
+% Returnvalue: the threshold
 %
 % inspired by: 
 % https://en.wikipedia.org/wiki/Otsu%27s_method
@@ -57,7 +59,7 @@ end
 % [Bur13] Principles of Digital Image Processing, Advanced Methods
 %
 % Author: Thomas Anderl
-function binaryIm = otsu(grayIm)
+function threshold = otsu(grayIm)
 
 %getPixels
 [rows columns colors] = size(grayIm);
@@ -88,14 +90,10 @@ for brightnessItt=1:256
     diffMeanBrightness = meanB-meanF;
     variance = pixB * pixF * (diffMeanBrightness*diffMeanBrightness); %variance
     if ( variance > maxVariance )
-        threshold = brightnessItt; %saves the grayValue for the threshold
+        threshold = brightnessItt / 256; %saves the grayValue for the threshold
         maxVariance = variance; %saves the current variance as the new maximum
     end
 end
-
-treshold = threshold/256; %our values go from 0-1
-binaryIm = true(size(grayIm)); %sets the entire image to white
-binaryIm(grayIm < treshold) = 0; %set to black, what is below the threshold
 end
 
 
