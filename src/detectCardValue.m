@@ -21,72 +21,99 @@ else
     greyIm = card;
 end
 
-smoothedIm = imgaussfilt(greyIm, 'filtersize', 9);
+% controlSmoothedIm = imgaussfilt(greyIm, 'filtersize', 9);
+smoothedIm = gauss(greyIm, 9, 0.5);
 
-thld = graythresh(smoothedIm);
+% controlThld = graythresh(smoothedIm);
+thld = threshOtsu(smoothedIm);
+
 binaryIm = false(size(smoothedIm));
 binaryIm(smoothedIm > thld) = 1;
 
 
 inv = ~binaryIm;
 padded = padAndDelete(inv);
+filtPadded = medfilt2(padded);
 
-bb = regionprops(padded, 'BoundingBox');
-minSquare = numel(padded);
-minLabel = 0;
-biggestBox = 0;
-biggestLabel = 0;
+bb = regionprops(filtPadded, 'BoundingBox');
+minDiagonal = norm(size(filtPadded));
+valueLabel = 0;
+cardArea = numel(card);
+isPictureCard = false;
 for i = 1:length(bb)
-    originArea = bb(i).BoundingBox(1) * bb(i).BoundingBox(2);
+    originDiagonal = norm([bb(i).BoundingBox(1) bb(i).BoundingBox(2)]);
     boxArea = bb(i).BoundingBox(3) * bb(i).BoundingBox(4);
-    if originArea < minSquare
-        minSquare = originArea;
-        minLabel = i;
+    if boxArea < 0.1 * cardArea
+        if originDiagonal < minDiagonal
+            minDiagonal = originDiagonal;
+            valueLabel = i;
+        end      
+    else 
+        isPictureCard = true;
     end
-    if boxArea > biggestBox
+    
+    %{
+if boxArea > biggestBox
         biggestBox = boxArea;
         biggestLabel = i;
-    end
+end
+%}
 end
 
-symbol = imcrop(padded, bb(biggestLabel).BoundingBox);
 
-%{
-box = bb(minLabel).BoundingBox;
+% find the label (=symbol) right under the prev. found value label
+% by finding the min distance between the lower left corner of the value's
+% bounding box and the upper left corner of the remaining bboxes
+box = bb(valueLabel).BoundingBox;
 refPoint =  [box(1) (box(2)+box(4))];
-minSquare = numel(padded);
+minDistance = norm(size(filtPadded));
 symbolLabel = 0;
 for i = 1:length(bb)
-    if i == minLabel
+    if i == valueLabel
         continue;
     end
     box = bb(i).BoundingBox;
     compPoint = [box(1) (box(2)+box(4))];
-    tmpSquare = prod(abs(compPoint - refPoint));
-    if tmpSquare < minSquare
-        minSquare = tmpSquare;
+    distance = norm(refPoint - compPoint);
+    if distance < minDistance
+        minDistance = distance;
         symbolLabel = i;
     end        
 end
 
-symbol2 = imcrop(padded, bb(symbolLabel).BoundingBox);
-%}
+symbolIm = imcrop(card, bb(symbolLabel).BoundingBox);
 
-boundBox = bb(minLabel).BoundingBox;
-cropX = boundBox(1) + boundBox(3);
-cropWidth = size(padded,2) - 2 * cropX;
-croppedCard = logical(imcrop(padded, [cropX, 1, cropWidth, size(padded, 1)]));
+%patternmatching
 
-[labels, numLabels] = bwlabel(croppedCard);
-areas = zeros(numLabels,1);
+if isPictureCard
+    % do pattern matching with the letter
+    
+    % for now with ocr:
+    croppedValue = imcrop(smoothedIm, bb(valueLabel).BoundingBox + [-3 -3 +6 +6]);
+    valueOcr = (ocr(croppedValue, 'TextLayout', 'Block'));
+    value = valueOcr.Text;
+else
+    % crop the center of the card for symbol counting
+    % edges are cut out by taking the max x-value of the upper left value
+    boundBox = bb(valueLabel).BoundingBox;
+    cropX = boundBox(1) + boundBox(3);
+    cropWidth = size(padded,2) - 2 * cropX;
+    croppedCard = logical(imcrop(padded, [cropX, 1, cropWidth, size(padded, 1)]));
 
-for i = 1:numLabels
-    areas(i) = sum(labels(:) == i);
+    [labels, numLabels] = bwlabel(croppedCard);
+    areas = zeros(numLabels,1);
+
+    for i = 1:numLabels
+        areas(i) = sum(labels(:) == i);
+    end
+
+    % count all symbols that are at least 90% in size as the biggest symbol
+    [maxArea, maxIdx] = max(areas);
+    limit = maxArea * 0.9;
+    value = num2str(sum(areas(:) >= limit));
 end
-
-[maxArea, maxIdx] = max(areas);
-limit = maxArea * 0.9;
-value = sum(areas(:) >= limit);
+    
+symbol = '';
 
 
 end

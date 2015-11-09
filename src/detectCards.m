@@ -14,9 +14,8 @@ clc
 
 % Read in the image file and convert to grey scale
 if ~exist(filename, 'file');
-    sprinf(['The specified file does not exist within MATLAB environment.\n'...
+    error(['The specified file does not exist within MATLAB environment.\n'...
         'Please check your input again.'])
-    return
 end
 
 %  check image if already in double type, if not: convert
@@ -34,7 +33,11 @@ end
 
 % smooth the image with a gaussian filter to remove noise
 
-smoothedIm = imgaussfilt(greyIm, 'filtersize', 9);
+% built in MATLAB-Function for checking
+% controlIm = imgaussfilt(greyIm, 'filtersize', 9);
+
+smoothedIm = gauss(greyIm, 9, 0.5);
+
 
 %{
  Create a binary image by thresholding against white (card background)
@@ -45,7 +48,8 @@ binaryIm(greyIm > thld - epsilon) = 1;
 %}
 
 % Create a binary image by threholding with Otsu against background
-thld = graythresh(smoothedIm);
+% controlThld = graythresh(smoothedIm);
+thld = threshOtsu(smoothedIm);
 binaryIm = false(size(smoothedIm));
 binaryIm(smoothedIm > thld) = 1;
 
@@ -69,19 +73,32 @@ end
 clear a;
 [sortedAreas, areaIdx] = sort(areas, 'descend');
 
+annotIm = originalIm;
 counter = 1;
 for i = 1: length(sortedAreas)
-   
-    cards{1, counter} = imcrop(originalIm, rp(areaIdx(i)).BoundingBox);
+   bb = rp(areaIdx(i)).BoundingBox;
+    cards{1, counter} = imcrop(originalIm, bb);
     
    if (sortedAreas(i) <= sortedAreas(1) * 0.9);
        cards{1,counter} = [];
        break;
+   else
+       [value symbol] = detectCardValue(cards{i});
+       text = strcat(symbol, ' : ', value);
+       annotIm = insertObjectAnnotation(annotIm, 'rectangle', ...
+                                        bb, text, ...
+                                        'TextBoxOpacity', 0.8, ...
+                                        'FontSize', 52, 'LineWidth', 3);
+        disp(text);
    end
-    figure;
-    imshow(cards{1,counter});
+    % figure;
+    % imshow(cards{1,counter});
+    
     counter = counter + 1;
 end
+
+figure;
+imshow(annotIm);
 
 
 
