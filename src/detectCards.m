@@ -1,10 +1,27 @@
 
-function [cards] = detectCards(filename)
-% DETECTCARD Detects playing cards in an image and prints their values.
-%   DETECTCARD(FILENAME)    reads the image specified by FILENAME
+function [cards, annotIm] = detectCards(filename, varargin)
+% DETECTCARDS Detects playing cards in an image,
+%               annotates them with their rank and value,
+%               and stores the segmented images in a cell array.
+%   CARDS = DETECTCARDS(FILENAME)    reads the image specified by FILENAME
 %                           in either .png, .tiff or .jpeg format
 %                           as an input and prints the card values as
 %                           textual output to the console.
+%
+%   [CARDS, ANNOTIM] = DETECTCARDS(FILENAME)    additionally stores the
+%                           annotated image.
+%
+%   FILENAME                the name of the image file from which the cards
+%                           are to be detected as a string.
+%
+%   opt. FASTMODE           if set to true, built in MATLAB functions
+%                           are used to increase performance speed
+%
+%   opt. SHOWCARDS          creates a new figure and shows each segmented
+%                           card.
+%
+%
+% see also: DETECTCARDVALUE, DETECTSYMBOL.
 
 % Authors: Christopher Dick (0946375), Timon Höbert()
 clc
@@ -12,13 +29,43 @@ clc
 
 %% Preprocessing
 
+% check arguments
+narginchk(1, 3);
+fastMode = false;
+showCards = false;
+
+optArgs = {'fastMode', 'showCards'};
+
+switch nargin
+    case 1
+    case 2
+        if strcmp(varargin{1}, 'fastMode') 
+            fastMode = true;
+        elseif strcmp(varargin{1}, 'showCards')
+            showCards = true;
+        end
+    case 3
+        if max(strcmp('fastMode', varargin))
+            fastMode = true;
+            if max(strcmp('showCards', varargin))
+                showCards = true;
+            else 
+                error('Invalid optional parameters.')
+            end
+        else
+            error('Invalid optional parameters.')
+        end
+end
+            
+
 % Read in the image file and convert to grey scale
 if ~exist(filename, 'file');
-    error(['The specified file does not exist within MATLAB environment.\n'...
-        'Please check your input again.'])
+    error(['The specified file "%s" does not exist ' ...
+            'within the MATLAB environment. \n' ...
+        'Please check your input again.'], filename)
 end
 
-%  check image if already in double type, if not: convert
+%  check image if already in double type, if not: convert 
 originalIm = imread(filename);
 if ~isfloat(originalIm)
     originalIm = im2double(originalIm);
@@ -32,12 +79,16 @@ else
 end
 
 % smooth the image with a gaussian filter to remove noise
+% Create a binary image by threholding with Otsu against background
 
-% built in MATLAB-Function for checking
-% controlIm = imgaussfilt(greyIm, 'filtersize', 9);
-
-smoothedIm = gauss(greyIm, 9, 0.5);
-
+if fastMode == true
+    % built in MATLAB-Function for deubgging
+    smoothedIm = imgaussfilt(greyIm, 'filtersize', 9);
+    thld = graythresh(smoothedIm);
+else 
+    smoothedIm = gauss(greyIm, 9, 0.5);
+    thld = threshOtsu(smoothedIm);
+end
 
 %{
  Create a binary image by thresholding against white (card background)
@@ -47,9 +98,6 @@ binaryIm = false(size(greyIm));
 binaryIm(greyIm > thld - epsilon) = 1;
 %}
 
-% Create a binary image by threholding with Otsu against background
-% controlThld = graythresh(smoothedIm);
-thld = threshOtsu(smoothedIm);
 binaryIm = false(size(smoothedIm));
 binaryIm(smoothedIm > thld) = 1;
 
@@ -59,7 +107,11 @@ binaryIm(smoothedIm > thld) = 1;
 
 % Detect cards by connected component labeling
 
-[labeledIm, numLabels] = bwlabel(binaryIm);
+if fastMode == true
+    [labeledIm, numLabels] = bwlabel(binaryIm);
+else
+    [labeledIm, numLabels] = ccl(binaryIm);
+end
 
 rp = regionprops(labeledIm, 'BoundingBox');
 
@@ -75,6 +127,7 @@ clear a;
 
 annotIm = originalIm;
 counter = 1;
+
 for i = 1: length(sortedAreas)
    bb = rp(areaIdx(i)).BoundingBox;
     cards{1, counter} = imcrop(originalIm, bb);
@@ -83,7 +136,7 @@ for i = 1: length(sortedAreas)
        cards{1,counter} = [];
        break;
    else
-       [value symbol] = detectCardValue(cards{i});
+       [value, symbol] = detectCardValue(cards{i});
        text = strcat(symbol, ' : ', value);
        annotIm = insertObjectAnnotation(annotIm, 'rectangle', ...
                                         bb, text, ...
@@ -91,8 +144,11 @@ for i = 1: length(sortedAreas)
                                         'FontSize', 52, 'LineWidth', 3);
         disp(text);
    end
-    % figure;
-    % imshow(cards{1,counter});
+   
+   if showCards == true
+        figure;
+        imshow(cards{1,counter});
+   end
     
     counter = counter + 1;
 end
