@@ -33,8 +33,6 @@ clc
 % TODO: Fehlerbehandlung falls input 2 und 3 keine boolean
 narginchk(1, 3);
 l=length(varargin);
-fastMode=false;
-showCards=false;
 if l>0
     fastMode = cell2mat(varargin(1));
     if l>1
@@ -90,7 +88,7 @@ end
 if fastMode == true
     % built in MATLAB-Function for deubgging
     
-    smoothedIm = imfilter(greyIm,fspecial('gaussian',9,0.5));
+    smoothedIm = imfilter(greyIm,fspecial('gaussian',9,0.5))
     %smoothedIm = imgaussfilt(greyIm, 'filtersize', 9);
     thld = graythresh(smoothedIm);
 else 
@@ -149,7 +147,7 @@ for i = 1: length(sortedAreas)
        annotIm = insertObjectAnnotation(annotIm, 'rectangle', ...
                                         bb, text, ...
                                         'TextBoxOpacity', 0.8, ...
-                                        'FontSize', 52);
+                                        'FontSize', 52, 'LineWidth', 3);
         disp(text);
    end
    

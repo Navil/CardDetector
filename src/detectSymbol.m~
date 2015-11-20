@@ -17,21 +17,18 @@ binaryIm = false(size(gray));
 binaryIm(gray > thresh) = 1;
 binaryIm=imresize(binaryIm, [40 40]);
 
-min=sum(sum(abs(binaryIm-patterns(1).value)));
+min=sum(sum(abs(binaryIm-patterns(1).value
 mintext=patterns(1).name;
 
 n=length(patterns);
 for i=2:n
-    new=sum(sum(abs(binaryIm-patterns(i).value)));
     
-    if new<min
-    min=new;
-    mintext=patterns(i).name;
-    end
+    
+    
     
 end
 
-symbol = mintext;
+symbol = binaryIm;
 
 end
 

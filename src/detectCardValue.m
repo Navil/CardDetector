@@ -113,7 +113,7 @@ else
     value = num2str(sum(areas(:) >= limit));
 end
     
-symbol = '';
+symbol = detectSymbol(symbolIm);
 
 
 end
