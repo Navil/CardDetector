@@ -23,7 +23,7 @@ function [cards, annotIm] = detectCards(filename, varargin)
 %
 % see also: DETECTCARDVALUE, DETECTSYMBOL.
 
-% Authors: Christopher Dick (0946375), Timon Höbert()
+% Authors: Christopher Dick (0946375), Timon Höbert(1427936)
 clc
 
 
@@ -136,6 +136,11 @@ clear a;
 annotIm = originalIm;
 counter = 1;
 
+cardBox = zeros(length(sortedAreas), 4);
+valueBoxes = zeros(length(sortedAreas), 4);
+symbolBoxes = zeros(length(sortedAreas), 4);
+texts = cell(length(sortedAreas), 1);
+
 for i = 1: length(sortedAreas)
    bb = rp(areaIdx(i)).BoundingBox;
     cards{1, counter} = imcrop(originalIm, bb);
@@ -144,12 +149,12 @@ for i = 1: length(sortedAreas)
        cards{1,counter} = [];
        break;
    else
-       [value, symbol] = detectCardValue(cards{i});
-       text = strcat(symbol, ' : ', value);
-       annotIm = insertObjectAnnotation(annotIm, 'rectangle', ...
-                                        bb, text, ...
-                                        'TextBoxOpacity', 0.8, ...
-                                        'FontSize', 52);
+       [value, symbol, valueBox, symbolBox] = detectCardValue(cards{i}, fastMode);
+       text = strcat(symbol, ':', value);
+       cardBox(counter, 1:4) = bb;
+       valueBoxes(counter,  1:4) = valueBox;
+       symbolBoxes(counter, 1:4) = symbolBox;
+       texts{counter} = text;
         disp(text);
    end
    
@@ -160,6 +165,29 @@ for i = 1: length(sortedAreas)
     
     counter = counter + 1;
 end
+
+cardBox = cardBox(1:counter, :);
+valueBoxes = valueBoxes(1:counter, :);
+valueBoxes(: , 1:2) = valueBoxes(: , 1:2) + cardBox(: , 1:2);
+symbolBoxes = symbolBoxes(1:counter, :);
+symbolBoxes(: , 1:2) = symbolBoxes(: , 1:2) + cardBox(: , 1:2);
+texts = texts{1:counter, :};
+annotIm = insertObjectAnnotation(annotIm, 'rectangle', ...
+                                        cardBox, texts, ...
+                                        'TextBoxOpacity', 0.8, ...
+                                        'FontSize', 52);
+                                    
+
+annotIm = (insertObjectAnnotation(annotIm, 'rectangle', ...
+                                        valueBoxes, ...
+                                        'Valuebox', ...
+                                        'TextBoxOpacity', 0.8, ...
+                                        'FontSize', 10, 'Color', 'red'));
+annotIm = insertObjectAnnotation(annotIm, 'rectangle', ...
+                                        symbolBoxes, ...
+                                        'Symbolbox', ...
+                                        'TextBoxOpacity', 0.8, ...
+                                        'FontSize', 10, 'Color', 'green');
 
 figure;
 imshow(annotIm);

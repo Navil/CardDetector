@@ -39,13 +39,12 @@ for row = 1 : rows
                 pos = stack(1,:);
                 stack(1,:) = [];
 
-                %// If we have visited this location, continue
+                % skip this position if already been there
                 if beenThere(pos(1),pos(2))
                     continue;
                 end
 
-                %// Mark location as true and mark this location to be
-                %// its unique ID
+                % check as visited and assign a label
                 beenThere(pos(1),pos(2)) = true;
                 labels(pos(1),pos(2)) = numLabel;
 
