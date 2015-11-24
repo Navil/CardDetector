@@ -30,17 +30,11 @@ clc
 %% Preprocessing
 
 % check arguments
-% TODO: Fehlerbehandlung falls input 2 und 3 keine boolean
+
 narginchk(1, 3);
-l=length(varargin);
+
 fastMode=false;
 showCards=false;
-if l>0
-    fastMode = cell2mat(varargin(1));
-    if l>1
-    showCards = cell2mat(varargin(2));
-    end
-end
 
 switch nargin
     case 1
