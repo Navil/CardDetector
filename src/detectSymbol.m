@@ -53,7 +53,7 @@ end
 binaryIm=imresize(binaryIm, [40 40]);
 
 if symBool
-    dif=abs(binaryIm-patterns(1).value);
+    dif=abs(binaryIm-~patterns(1).value);
 else
     dif=xor(binaryIm,patterns(1).value);
 end
@@ -64,7 +64,7 @@ n=length(patterns);
 for i=2:n
     
     if symBool
-        dif=abs(binaryIm-patterns(i).value);
+        dif=abs(binaryIm-~patterns(i).value);
     else
         dif=xor(binaryIm,patterns(i).value);
     end
