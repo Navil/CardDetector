@@ -159,13 +159,14 @@ for i = 1: length(sortedAreas)
     
     counter = counter + 1;
 end
+counter = counter - 1;
 
 cardBox = cardBox(1:counter, :);
 valueBoxes = valueBoxes(1:counter, :);
 valueBoxes(: , 1:2) = valueBoxes(: , 1:2) + cardBox(: , 1:2);
 symbolBoxes = symbolBoxes(1:counter, :);
 symbolBoxes(: , 1:2) = symbolBoxes(: , 1:2) + cardBox(: , 1:2);
-texts = texts{1:counter, :};
+texts = texts(1:counter);
 annotIm = insertObjectAnnotation(annotIm, 'rectangle', ...
                                         cardBox, texts, ...
                                         'TextBoxOpacity', 0.8, ...

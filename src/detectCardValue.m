@@ -4,7 +4,6 @@ function [ value, symbol, valueBox, symbolBox ] = detectCardValue(card, fastMode
 %   VALUE The value of the card.
 %   SYMBOL A binary image of the symbol of the card.
 
-% ajsdlkj
 
 
 %% Value recognition of segmented card
@@ -22,7 +21,8 @@ else
 end
 
 if fastMode == true
-    smoothedIm = imgaussfilt(greyIm, 'filtersize', 9);
+    smoothedIm = imfilter(greyIm,fspecial('gaussian',9,0.5));
+    %smoothedIm = imgaussfilt(greyIm, 'filtersize', 9);
     thld = graythresh(smoothedIm);
 else
     smoothedIm = gauss(greyIm, 9, 0.5);
@@ -97,14 +97,17 @@ if isPictureCard
     % for now with ocr:
     
     %use this Valueimage for patternmatching
-    %cropBox = bb(valueLabel).BoundingBox;
-    %cropBox(3) = bb(valueLabel).BoundingBox(4);
-    %cropBox = cropBox + [-3 -3 +6 +6];
-    %croppedValue = imcrop(smoothedIm,cropBox);
+    cropBox = bb(valueLabel).BoundingBox;
+    cropBox(3) = bb(valueLabel).BoundingBox(4);
+    cropBox = cropBox + [-3 -3 +6 +6];
+    croppedValue = imcrop(smoothedIm,cropBox);
+    value=detectSymbol(croppedValue, false);
     
-    croppedValue = imcrop(smoothedIm,bb(valueLabel).BoundingBox + [-3 -3 +6 +6]);
-    valueOcr = (ocr(croppedValue, 'TextLayout', 'Block'));
-    value = valueOcr.Text;
+    valueBox = cropBox;
+    
+    %croppedValue = imcrop(smoothedIm,bb(valueLabel).BoundingBox + [-3 -3 +6 +6]);
+    %valueOcr = (ocr(croppedValue, 'TextLayout', 'Block'));
+    %value = valueOcr.Text;
 else
     % crop the center of the card for symbol counting
     % edges are cut out by taking the max x-value of the upper left value
@@ -131,7 +134,7 @@ else
     end
 end
     
-symbol = detectSymbol(symbolIm);
+symbol = detectSymbol(symbolIm, true);
 
 
 end

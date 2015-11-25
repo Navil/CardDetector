@@ -8,16 +8,33 @@
 % "Patterns" Folder!
 %
 
+function makePatterns()
 
-filelist=dir('Patterns');
+filelist=dir('Patterns/Symbole');
 filelist=filelist(~[filelist.isdir]);
 filelist = filelist(arrayfun(@(x) x.name(1), filelist) ~= '.');
+filelist = arrayfun(@(x) strcat('Patterns/Symbole/',x.name),filelist,'UniformOutput',0);
 
+symbols=make(filelist);
+
+filelist=dir('Patterns/Bilder');
+filelist=filelist(~[filelist.isdir]);
+filelist = filelist(arrayfun(@(x) x.name(1), filelist) ~= '.');
+filelist = arrayfun(@(x) strcat('Patterns/Bilder/',x.name),filelist,'UniformOutput',0);
+
+letters=make(filelist);
+
+save('patterns.mat','symbols','letters')
+
+end
+
+function patterns=make(filelist)
 patterns=struct();
 
 n = length(filelist);
 for i=1:n
-    path=strcat('Patterns/',filelist(i).name);
+    path=filelist(i);
+    path=path{1};
     symbolIm=imread(path);
     if ~isfloat(symbolIm)
     symbolIm = im2double(symbolIm);
@@ -29,9 +46,8 @@ for i=1:n
     binaryIm=imresize(binaryIm,[40 40]);
     [~,fname,~]=fileparts(path);
     patterns(i).name=fname;
-    patterns(i).value=binaryIm;
+    patterns(i).value=~binaryIm;
 end
 
-
-save('patterns.mat','patterns')
+end
 
