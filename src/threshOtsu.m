@@ -16,7 +16,7 @@ function threshold = threshOtsu(grayIm)
 
 
 %getPixels
-[rows columns colors] = size(grayIm);
+[rows, columns, ~] = size(grayIm);
 numPixels = rows*columns;
 
 %getHistogram

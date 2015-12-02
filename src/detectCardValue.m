@@ -1,5 +1,6 @@
 function [ value, symbol, valueBox, symbolBox ] = detectCardValue(card, fastMode)
-%UNTITLED2 Summary of this function goes here
+% DETECTCARDVALUE(CARD, FASTMODE) Detects the location of the symbol and
+%                                value of a card in the upper left corner.
 %   CARD An image matrix of a single card with borders.
 %   VALUE The value of the card.
 %   SYMBOL A binary image of the symbol of the card.
@@ -54,13 +55,6 @@ for i = 1:length(bb)
     else 
         isPictureCard = true;
     end
-    
-    %{
-if boxArea > biggestBox
-        biggestBox = boxArea;
-        biggestLabel = i;
-end
-%}
 end
 
 
@@ -93,8 +87,6 @@ symbolIm = imcrop(card, symbolBox);
 
 if isPictureCard
     % do pattern matching with the letter
-    % TODO: - Julian, aendere zum  matching mit detectSymbol
-    % for now with ocr:
     
     %use this Valueimage for patternmatching
     cropBox = bb(valueLabel).BoundingBox;
@@ -124,7 +116,7 @@ else
     end
 
     % count all symbols that are at least 90% in size as the biggest symbol
-    [maxArea, maxIdx] = max(areas);
+    [maxArea, ~] = max(areas);
     limit = maxArea * 0.9;
     value = sum(areas(:) >= limit);
     if value == 1

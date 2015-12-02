@@ -14,47 +14,41 @@ function [cards, annotIm] = detectCards(filename, varargin)
 %   FILENAME                the name of the image file from which the cards
 %                           are to be detected as a string.
 %
-%   opt. FASTMODE           if set to true, built in MATLAB functions
-%                           are used to increase performance speed
+%   opt. FASTMODE           add 'fastMode' as argument to use built in
+%                           MATLAB functions to increase performance speed
 %
-%   opt. SHOWCARDS          creates a new figure and shows each segmented
-%                           card.
+%   opt. SHOWCARDS          add 'showCards' as argument to create a new
+%                           figure and show each segmented card.
+%
+%   opt. DEBUGMODE          add 'debugMode' as argument to show the
+%                           bounding boxes of the detected symbol and value
+%                           in the annotated image.
 %
 %
 % see also: DETECTCARDVALUE, DETECTSYMBOL.
 
 % Authors: Christopher Dick (0946375), Timon Höbert(1427936)
-clc
+
 
 
 %% Preprocessing
 
 % check arguments
 
-narginchk(1, 3);
+narginchk(1, 4);
 
-fastMode=false;
-showCards=false;
+fastMode = false;
+showCards = false;
+debugMode = false;
 
-switch nargin
-    case 1
-    case 2
-        if strcmp(varargin{1}, 'fastMode') 
-            fastMode = true;
-        elseif strcmp(varargin{1}, 'showCards')
-            showCards = true;
-        end
-    case 3
-        if max(strcmp('fastMode', varargin))
-            fastMode = true;
-            if max(strcmp('showCards', varargin))
-                showCards = true;
-            else 
-                error('Invalid optional parameters.')
-            end
-        else
-            error('Invalid optional parameters.')
-        end
+for i = 1:(nargin-1)
+    if strcmp(varargin{i}, 'fastMode')
+             fastMode = true;
+    elseif strcmp(varargin{i}, 'showCards')
+             showCards = true;
+    elseif strcmp(varargin{i}, 'debugMode')
+             debugMode = true;
+    end
 end
             
 
@@ -110,9 +104,9 @@ binaryIm(smoothedIm > thld) = 1;
 % Detect cards by connected component labeling
 
 if fastMode == true
-    [labeledIm, numLabels] = bwlabel(binaryIm);
+    [labeledIm, ~] = bwlabel(binaryIm);
 else
-    [labeledIm, numLabels] = ccl(binaryIm);
+    [labeledIm, ~] = ccl(binaryIm);
 end
 
 rp = regionprops(labeledIm, 'BoundingBox');
@@ -143,11 +137,15 @@ for i = 1: length(sortedAreas)
        cards{1,counter} = [];
        break;
    else
-       [value, symbol, valueBox, symbolBox] = detectCardValue(cards{i}, fastMode);
+       if debugMode
+            [value, symbol, valueBox, symbolBox] = detectCardValue(cards{i}, fastMode);
+            valueBoxes(counter,  1:4) = valueBox;
+            symbolBoxes(counter, 1:4) = symbolBox;
+       else
+           [value, symbol]  = detectCardValue(cards{i}, fastMode);
+       end
        text = strcat(symbol, ':', value);
        cardBox(counter, 1:4) = bb;
-       valueBoxes(counter,  1:4) = valueBox;
-       symbolBoxes(counter, 1:4) = symbolBox;
        texts{counter} = text;
         disp(text);
    end
@@ -161,28 +159,32 @@ for i = 1: length(sortedAreas)
 end
 counter = counter - 1;
 
-cardBox = cardBox(1:counter, :);
-valueBoxes = valueBoxes(1:counter, :);
-valueBoxes(: , 1:2) = valueBoxes(: , 1:2) + cardBox(: , 1:2);
-symbolBoxes = symbolBoxes(1:counter, :);
-symbolBoxes(: , 1:2) = symbolBoxes(: , 1:2) + cardBox(: , 1:2);
+boxes = cardBox(1:counter, :);
 texts = texts(1:counter);
-annotIm = insertObjectAnnotation(annotIm, 'rectangle', ...
-                                        cardBox, texts, ...
-                                        'TextBoxOpacity', 0.8, ...
-                                        'FontSize', 52);
-                                    
 
-annotIm = (insertObjectAnnotation(annotIm, 'rectangle', ...
+if debugMode
+    valueBoxes = valueBoxes(1:counter, :);
+    valueBoxes(: , 1:2) = valueBoxes(: , 1:2) + boxes(: , 1:2);
+    symbolBoxes = symbolBoxes(1:counter, :);
+    symbolBoxes(: , 1:2) = symbolBoxes(: , 1:2) + boxes(: , 1:2);
+    
+    annotIm = (insertObjectAnnotation(annotIm, 'rectangle', ...
                                         valueBoxes, ...
                                         'Valuebox', ...
                                         'TextBoxOpacity', 0.8, ...
                                         'FontSize', 10, 'Color', 'red'));
-annotIm = insertObjectAnnotation(annotIm, 'rectangle', ...
+    annotIm = insertObjectAnnotation(annotIm, 'rectangle', ...
                                         symbolBoxes, ...
                                         'Symbolbox', ...
                                         'TextBoxOpacity', 0.8, ...
                                         'FontSize', 10, 'Color', 'green');
+end
+    annotIm = insertObjectAnnotation(annotIm, 'rectangle', ...
+                                        boxes, texts, ...
+                                        'TextBoxOpacity', 0.8, ...
+                                        'FontSize', 52);                                 
+
+
 
 figure;
 imshow(annotIm);
