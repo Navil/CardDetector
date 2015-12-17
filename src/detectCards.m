@@ -110,33 +110,52 @@ else
 end
 
 rp = regionprops(labeledIm, 'BoundingBox');
+aspectWidth = 62;
+aspectHeight = 88;
 
+% preallocate the cell array for the cards,
+% we do not expect more than 10 cards
 cards = cell(1, 10);
 areas = zeros(size(rp));
 
+% calculate the area of the bbox for each label
 for i = 1:length(areas)
     a = rp(i).BoundingBox;
     areas(i) = a(3) * a(4);
 end
 clear a;
+% sort labels by area, biggest, i.e., cards are first
 [sortedAreas, areaIdx] = sort(areas, 'descend');
 
 annotIm = originalIm;
-counter = 1;
+counter = 1; % the number of cards detected and segmentated
 
+% the bboxes for the later segmentation and annotation
 cardBox = zeros(length(sortedAreas), 4);
 valueBoxes = zeros(length(sortedAreas), 4);
 symbolBoxes = zeros(length(sortedAreas), 4);
 texts = cell(length(sortedAreas), 1);
 
+% iterate over all areas and crop only the biggest labels,
+% with the first (biggest) as a reference value for the area
 for i = 1: length(sortedAreas)
    bb = rp(areaIdx(i)).BoundingBox;
     cards{1, counter} = imcrop(originalIm, bb);
     
+    % stop if label smaller than 90% of the first recognized
    if (sortedAreas(i) <= sortedAreas(1) * 0.9);
        cards{1,counter} = [];
        break;
    else
+       % check if card is rotated and correct if necessary
+%        ratio = linearMap(bb(3)/bb(4), aspectWidth/aspectHeight, aspectHeight/aspectWidth, 0, 90);
+%        if ratio > 3
+%             cards{1, counter} = imrotate(cards{1, counter}, ratio);
+%        end
+       if bb(3) > bb(4)
+           cards{1, counter} = imrotate(cards{1, counter}, -90);
+       end
+       % get the value, symbol and their bboxes for the cropped card
        if debugMode
             [value, symbol, valueBox, symbolBox] = detectCardValue(cards{i}, fastMode);
             valueBoxes(counter,  1:4) = valueBox;
@@ -144,12 +163,15 @@ for i = 1: length(sortedAreas)
        else
            [value, symbol]  = detectCardValue(cards{i}, fastMode);
        end
+       % create the text that is shown in the annotated image
        text = strcat(symbol, ':', value);
        cardBox(counter, 1:4) = bb;
        texts{counter} = text;
-        disp(text);
+       % show the found card values and symbols on the command window
+       disp(text);
    end
    
+   % show the segmentated cards if specified
    if showCards == true
         figure;
         imshow(cards{1,counter});
@@ -162,6 +184,8 @@ counter = counter - 1;
 boxes = cardBox(1:counter, :);
 texts = texts(1:counter);
 
+
+%% Annotation of the original image
 if debugMode
     valueBoxes = valueBoxes(1:counter, :);
     valueBoxes(: , 1:2) = valueBoxes(: , 1:2) + boxes(: , 1:2);
@@ -185,7 +209,7 @@ end
                                         'FontSize', 52);                                 
 
 
-
+% show the complete annotated image
 figure;
 imshow(annotIm);
 

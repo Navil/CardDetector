@@ -1,5 +1,5 @@
-function [ labels, numLabel ] = ccl( binaryIm, neighbourhood )
-% CCL Labels connectec components in a 2D binary image.
+function [ labels, numLabel ] = ccl( binaryIm )
+% CCL Connected component labeling in a 2D binary image for an 8-neighbourhood.
 %   [LABELS, NUMLABELS] = CCL(BINARYIM) creates the new labeled image
 %                           LABELS. Each identified region is succesively
 %                           labeled with an integer, starting with 1. The
@@ -7,18 +7,15 @@ function [ labels, numLabel ] = ccl( binaryIm, neighbourhood )
 %                           is not taken into account for the labeling and
 %                           therefore remains 0.
 %
-%   [LABELS, NUMLABELS] = CCL(BINARYIM, 4) does the same as
-%                           mentioned above, but in the given
-%                           neighbourhood. The default is 8-connected,
-%                           option is 4-connected.
 
 
-beenThere = false(size(binaryIm));
+
+beenThere = false(size(binaryIm)); % buffer for already visited pixels
 [rows, cols] = size(binaryIm);
-labels = zeros(rows, cols);
+labels = zeros(rows, cols); % the output image
 numLabel = 1;
 
-
+% iterate over all pixels
 for row = 1 : rows
     for col = 1 : cols
         % background is ignored
@@ -30,51 +27,52 @@ for row = 1 : rows
             continue;
 
         else
-            % initialize a stack on this position
+            
+            % make a stack on the current pixel pos
             stack = [row col];
 
-            % and go depth-first
+            % depth-first floodfill labeling
             while ~isempty(stack)
-                % pop the first element
+                % pop from stack by taking the first row
                 pos = stack(1,:);
                 stack(1,:) = [];
 
-                % skip this position if already been there
+                % skip this pixel if already been there
                 if beenThere(pos(1),pos(2))
                     continue;
                 end
 
-                % check as visited and assign a label
+                % been there and label
                 beenThere(pos(1),pos(2)) = true;
                 labels(pos(1),pos(2)) = numLabel;
 
-                %// Look at the 8 neighbouring locations
+                % take the 8 neighbourhood
                 [locs_y, locs_x] = meshgrid(pos(2)-1:pos(2)+1, pos(1)-1:pos(1)+1);
                 locs_y = locs_y(:);
                 locs_x = locs_x(:);
 
-                %// Get rid of those locations out of bounds
-                out_of_bounds = locs_x < 1 | locs_x > rows | locs_y < 1 | locs_y > cols;
+                % delete out of bound indices
+                outOfBound = locs_x < 1 | locs_x > rows | locs_y < 1 | locs_y > cols;
 
-                locs_y(out_of_bounds) = [];
-                locs_x(out_of_bounds) = [];
+                locs_y(outOfBound) = [];
+                locs_x(outOfBound) = [];
 
-                %// Get rid of those locations already visited
+                % delete pixels we already been to
                 is_visited = beenThere(sub2ind([rows cols], locs_x, locs_y));
 
                 locs_y(is_visited) = [];
                 locs_x(is_visited) = [];
 
-                %// Get rid of those locations that are zero.
+                % delete all background pixel positions
                 is_1 = binaryIm(sub2ind([rows cols], locs_x, locs_y));
                 locs_y(~is_1) = [];
                 locs_x(~is_1) = [];
 
-                %// Add remaining locations to the stack
+                % the rest has to be visited and therefore stacked
                 stack = [stack; [locs_x locs_y]];
             end
 
-            %// Increment counter once complete region has been examined
+            % region has been labeled, increment the label couner
             numLabel = numLabel + 1;
         end
     end
