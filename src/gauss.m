@@ -28,7 +28,7 @@ end
 kernSum = sum(kernel(:));
 kernel(:) = kernel(:)./kernSum;
 
-%Create a resizedIm, which is the inputIm with a black border, to avoid
+%Create a resizedIm, which is the inputIm with replicated border, to avoid
 %edge problems.
 [rows, columns, channels] = size(inputIm);
 borderSize = middle-1;
