@@ -1,4 +1,4 @@
-
+    
 function testAll(path)
 % TESTALL	Tests all files in the specified path
 
